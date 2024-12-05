@@ -14,9 +14,9 @@ Quick guide:
 
 Different ID's to search for using postman or similar softwares. These products already exists
 
-675190fb7c10f3024ec474a2
-675191107c10f3024ec474aa
-6751910a7c10f3024ec474a8
+1. 675190fb7c10f3024ec474a2
+2. 675191107c10f3024ec474aa
+3. 6751910a7c10f3024ec474a8
 
 The different routes
 

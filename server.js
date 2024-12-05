@@ -12,9 +12,48 @@ mongoose
   .then(() => console.log("Connected to MongoDB!"))
   .catch((err) => console.log("Could not connect to MongoDB:", err));
 
-app.get("/", (req, res) => {
-  res.send("<h1>Nu lär vi oss API!</h1>");
-});
+  app.get("/", async (req, res) => {
+    try {
+      const products = await Product.find();
+      const jsonProducts = JSON.stringify(products, null, 2); // Convert products to formatted JSON
+      
+      const html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Our Products in Json</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 15px; }
+            pre { background-color: #f4f4f4; padding: 12px; border-radius: 3px; overflow-x: auto; }
+          </style>
+        </head>
+        <body>
+          <h1>Our products in Json</h1>
+          <pre>${jsonProducts}</pre>
+        </body>
+        </html>
+      `;
+  
+      res.status(200).send(html);
+    } catch (error) {
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Error</title>
+        </head>
+        <body>
+          <h1>Something went wrong</h1>
+          <p>Couldn't load the products. Kindly try again later.</p>
+        </body>
+        </html>
+      `);
+    }
+  });
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },

@@ -77,8 +77,11 @@ app.get('/api/products', async (req, res) => {
 
 app.get('/api/products/search', async (req, res) => {
   try {
-    const searchQuery = "KW"; 
-    const products = await Product.find({ name: { $regex: searchQuery, $options: 'i' } });
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({ error: 'Please put in paragraph or word to search for it.' });
+    }
+    const products = await Product.find({ name: { $regex: name, $options: 'i' } });
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ error: error.message });

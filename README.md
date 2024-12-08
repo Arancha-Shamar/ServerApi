@@ -21,7 +21,8 @@ Different ID's to search for using postman or similar softwares. These products 
 The different routes
 
 /api/products <--> Here you can get all the products or post new products. 
-/api/products/search <--> Here you will get all the products containing the letters KW. It's not case sensetive
+/api/products/search <--> Here you can search for a specific item by using letters or words for example
+  ---> localhost:3000/api/products/search?name=potatis
 /api/products/:id <--> replace the ID with the ID of the product you'd like to get. You can also put, post, delete and patch.
 / <--> Shows some HTML inputs on the localhost site.
 

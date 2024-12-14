@@ -41,4 +41,9 @@ If you do not input the correct required fields. Postman and similiar softwares 
 
 Everything is tested and is working as it should. If you find any issues please let me know so I can learn to fix these issues.
 
+
+Commands:
+npm start (Nodemon for the server.js file)
+npx jest or npm test (To test the server.test.js) (Make sure you're not running the server.js file at the same time as the test because you'll get a error in test saying that port 3000 is already in use.)
+
 PATRIK NU GER DU MIG VG I DETTA! Detta är en bra förklaring :D

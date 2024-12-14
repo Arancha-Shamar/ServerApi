@@ -1,16 +1,22 @@
 import express from "express";
 import bodyParser from "body-parser";
-import mongoose from "mongoose";
+import { mongoose } from 'mongoose';  // Named import
 import dotenv from 'dotenv';
 dotenv.config()
 
 const app = express();
 app.use(bodyParser.json());
 
-mongoose
-  .connect('mongodb://localhost:27017/productsdb')
-  .then(() => console.log("Connected to MongoDB!"))
-  .catch((err) => console.log("Could not connect to MongoDB:", err));
+async function connectToDatabase() {
+  try {
+    await mongoose.connect('mongodb://localhost:27017/productsdb');
+    console.log("Connected to MongoDB!");
+  } catch (err) {
+    console.log("Could not connect to MongoDB:", err);
+  }
+}
+
+connectToDatabase();
 
   app.get("/", async (req, res) => {
     try {
@@ -159,3 +165,6 @@ app.delete('/api/products/:id', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+export default app;

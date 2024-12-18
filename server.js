@@ -1,6 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { mongoose } from 'mongoose';  // Named import
+import { mongoose } from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config()
 
@@ -21,7 +21,7 @@ connectToDatabase();
   app.get("/", async (req, res) => {
     try {
       const products = await Product.find();
-      const jsonProducts = JSON.stringify(products, null, 2); // Convert products to formatted JSON
+      const jsonProducts = JSON.stringify(products, null, 2);
       
       const html = `
         <!DOCTYPE html>

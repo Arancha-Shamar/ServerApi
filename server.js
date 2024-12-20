@@ -2,14 +2,14 @@ import express from "express";
 import bodyParser from "body-parser";
 import { mongoose } from 'mongoose';
 import dotenv from 'dotenv';
-dotenv.config()
+dotenv.config();
 
 const app = express();
 app.use(bodyParser.json());
 
 async function connectToDatabase() {
   try {
-    await mongoose.connect('mongodb://localhost:27017/productsdb');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/productsdb');
     console.log("Connected to MongoDB!");
   } catch (err) {
     console.log("Could not connect to MongoDB:", err);
@@ -17,49 +17,6 @@ async function connectToDatabase() {
 }
 
 connectToDatabase();
-
-  app.get("/", async (req, res) => {
-    try {
-      const products = await Product.find();
-      const jsonProducts = JSON.stringify(products, null, 2);
-      
-      const html = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Our Products in Json</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 15px; }
-            pre { background-color: #f4f4f4; padding: 12px; border-radius: 3px; overflow-x: auto; }
-          </style>
-        </head>
-        <body>
-          <h1>Our products in Json</h1>
-          <pre>${jsonProducts}</pre>
-        </body>
-        </html>
-      `;
-  
-      res.status(200).send(html);
-    } catch (error) {
-      res.status(500).send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Error</title>
-        </head>
-        <body>
-          <h1>Something went wrong</h1>
-          <p>Couldn't load the products. Kindly try again later.</p>
-        </body>
-        </html>
-      `);
-    }
-  });
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -71,6 +28,83 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', productSchema);
 
+app.get("/", async (req, res) => {
+  try {
+    const products = await Product.find();
+    const tableRows = products.map(product => `
+      <tr>
+        <td>${product.name}</td>
+        <td>${product.description}</td>
+        <td>${product.price.toFixed(2)} SEK</td>
+        <td>${product.quantity}</td>
+        <td>${product.category}</td>
+      </tr>
+    `).join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Product List</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 15px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+          }
+          th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+          }
+          th {
+            background-color: #f4f4f4;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Product List</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+    res.status(200).send(html);
+  } catch (error) {
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Error</title>
+      </head>
+      <body>
+        <h1>Something went wrong</h1>
+        <p>Couldn't load the products. Kindly try again later.</p>
+      </body>
+      </html>
+    `);
+  }
+});
 
 app.get('/api/products', async (req, res) => {
   try {
@@ -85,7 +119,7 @@ app.get('/api/products/search', async (req, res) => {
   try {
     const { name } = req.query;
     if (!name) {
-      return res.status(400).json({ error: 'Please put in paragraph or word to search for it.' });
+      return res.status(400).json({ error: 'Please provide a product name to search.' });
     }
     const products = await Product.find({ name: { $regex: name, $options: 'i' } });
     res.status(200).json(products);
@@ -94,14 +128,13 @@ app.get('/api/products/search', async (req, res) => {
   }
 });
 
-
 app.get('/api/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Product not found' });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -118,9 +151,7 @@ app.post('/api/products', async (req, res) => {
 app.delete('/api/products', async (req, res) => {
   try {
     const result = await Product.deleteMany({});
-    res.status(200).json({ 
-      message: `All products have been deleted`
-    });
+    res.status(200).json({ message: `All products have been deleted` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -129,8 +160,8 @@ app.delete('/api/products', async (req, res) => {
 app.put('/api/products/:id', async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true, 
-      overwrite: true, 
+      new: true,
+      overwrite: true,
     });
     if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
     res.status(200).json(updatedProduct);
@@ -142,7 +173,7 @@ app.put('/api/products/:id', async (req, res) => {
 app.patch('/api/products/:id', async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true, 
+      new: true,
     });
     if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
     res.status(200).json(updatedProduct);
@@ -150,7 +181,6 @@ app.patch('/api/products/:id', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
-
 
 app.delete('/api/products/:id', async (req, res) => {
   try {
@@ -162,9 +192,7 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 
 export default app;
